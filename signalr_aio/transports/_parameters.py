@@ -16,6 +16,8 @@ class WebSocketParameters:
         self.raw_url = self._clean_url(connection.url)
         self.conn_data = self._get_conn_data(connection.hub)
         self.session = connection.session
+        self.adal_token = connection.adal_token
+        self.verify_ssl = connection.verify_ssl
         self.headers = None
         self.socket_conf = None
         self._negotiate()
@@ -41,6 +43,7 @@ class WebSocketParameters:
         if self.session is None:
             self.session = requests.Session()
         query = urlencode({
+            "access_token": self.adal_token,
             'connectionData': self.conn_data,
             'clientProtocol': self.protocol_version,
         })
@@ -61,6 +64,7 @@ class WebSocketParameters:
         ws_url = self._get_ws_url_from()
         query = urlencode({
             'transport': 'webSockets',
+            "access_token": self.adal_token,
             'connectionToken': self.socket_conf['ConnectionToken'],
             'connectionData': self.conn_data,
             'clientProtocol': self.socket_conf['ProtocolVersion'],

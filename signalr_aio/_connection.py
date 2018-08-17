@@ -13,12 +13,14 @@ from .transports import Transport
 class Connection(object):
     protocol_version = '1.5'
 
-    def __init__(self, url, session=None):
+    def __init__(self, url, session=None, adal_token=None, verify_ssl=True):
         self.url = url
         self.__hubs = {}
         self.__send_counter = -1
         self.hub = None
         self.session = session
+        self.adal_token = adal_token
+        self.verify_ssl = verify_ssl
         self.received = EventHook()
         self.error = EventHook()
         self.__transport = Transport(self)

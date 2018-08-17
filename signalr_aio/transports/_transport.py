@@ -14,6 +14,8 @@ except:
     from json import dumps, loads
 import websockets
 import asyncio
+import ssl
+import logging
 
 try:
     import uvloop
@@ -22,6 +24,7 @@ try:
 except ModuleNotFoundError:
     pass
 
+logger = logging.getLogger(__name__)
 
 class Transport:
     def __init__(self, connection):
@@ -55,8 +58,15 @@ class Transport:
         asyncio.Task(self.invoke_queue.put(CloseEvent()), loop=self.ws_loop)
 
     async def socket(self, loop):
-        async with websockets.connect(self._ws_params.socket_url, extra_headers=self._ws_params.headers,
-                                      loop=loop) as self.ws:
+        ws_connect_kwargs = dict(
+            uri=self._ws_params.socket_url, extra_headers=self._ws_params.headers, loop=loop
+        )
+        if not self._ws_params.verify_ssl:
+            ssl_context = ssl.SSLContext()
+            ssl_context.check_hostname = False
+            ws_connect_kwargs.update(ssl=ssl_context)
+
+        async with websockets.connect(**ws_connect_kwargs) as self.ws:
             self._connection.started = True
             await self.handler(self.ws)
 
@@ -77,6 +87,7 @@ class Transport:
             message = await ws.recv()
             if len(message) > 0:
                 data = loads(message)
+                logger.debug(f"WS received: {data}")
                 await self._connection.received.fire(**data)
 
     async def producer_handler(self, ws):
@@ -85,6 +96,8 @@ class Transport:
                 event = await self.invoke_queue.get()
                 if event is not None:
                     if event.type == 'INVOKE':
+                        data_to_send = dumps(event.message)
+                        logger.debug(f"WS sent: {data_to_send}")
                         await ws.send(dumps(event.message))
                     elif event.type == 'CLOSE':
                         await ws.close()
