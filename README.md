@@ -15,7 +15,7 @@ None right now.
 * Users can pass a custom session to the client, i.e a [`cfscrape`](https://github.com/Anorov/cloudflare-scrape) session in order to bypass Cloudflare.
 
 # Compatibility
-Asyncio requires Python 3.5+.
+Python 3.6+
 
 For Python2.X compatibility try [TargetProcess' gevent based SignalR client](https://github.com/TargetProcess/signalr-client-py).
 
