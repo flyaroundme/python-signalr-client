@@ -47,9 +47,14 @@ class Transport:
     def start(self):
         self._ws_params = WebSocketParameters(self._connection)
         if not self.ws_loop.is_running():
-            self.ws_loop.run_until_complete(self.socket(self.ws_loop))
+                self.ws_loop.run_until_complete(self.socket(self.ws_loop))
         else:
             self.futures.append(asyncio.ensure_future(self.socket(self.ws_loop), loop=self.ws_loop))
+    
+    async def start_async(self):
+        self._ws_params = WebSocketParameters(self._connection)
+        await self.socket(self.ws_loop)
+
 
     def send(self, message):
         asyncio.Task(self.invoke_queue.put(InvokeEvent(message)), loop=self.ws_loop)

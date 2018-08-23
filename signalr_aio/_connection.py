@@ -34,8 +34,13 @@ class Connection(object):
         self.received += handle_error
 
     def start(self):
-        self.hub = [hub_name for hub_name in self.__hubs][0]
+        self.hub = [hub_name for hub_name in self.__hubs][0] # kek
         self.__transport.start()
+    
+    async def start_async(self):
+        self.hub = [hub_name for hub_name in self.__hubs][0]
+        await self.__transport.start_async()
+
 
     def register_hub(self, name):
         if name not in self.__hubs:
