@@ -4,6 +4,7 @@
 # signalr_aio/_connection.py
 # Stanislav Lazarov
 
+import asyncio
 
 from .events import EventHook
 from .hubs import Hub
@@ -25,13 +26,21 @@ class Connection(object):
         self.error = EventHook()
         self.__transport = Transport(self)
         self.started = False
+        self.connection_started = asyncio.Event()
 
         async def handle_error(**data):
             error = data["E"] if "E" in data else None
             if error is not None:
                 await self.error.fire(error)
+        
+        async def handle_connected(**data):
+            if "C" in data:
+                self.connection_started.set()        
 
         self.received += handle_error
+        self.received += handle_connected
+        
+
 
     def start(self):
         self.hub = [hub_name for hub_name in self.__hubs][0] # kek

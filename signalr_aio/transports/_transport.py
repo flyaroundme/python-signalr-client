@@ -67,12 +67,15 @@ class Transport:
             uri=self._ws_params.socket_url, extra_headers=self._ws_params.headers, loop=loop
         )
         if not self._ws_params.verify_ssl:
+            
             ssl_context = ssl.SSLContext()
             ssl_context.check_hostname = False
             ws_connect_kwargs.update(ssl=ssl_context)
 
         async with websockets.connect(**ws_connect_kwargs) as self.ws:
+            
             self._connection.started = True
+            logger.info("WS connection started")
             await self.handler(self.ws)
 
     async def handler(self, ws):
