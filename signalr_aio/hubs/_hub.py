@@ -38,9 +38,10 @@ class HubClient(object):
             for inner_data in messages:
                 hub = inner_data['H'] if 'H' in inner_data else ''
                 if hub.lower() == self.name.lower():
-                    method = inner_data['M']
+                    method = inner_data['M']                    
                     message = inner_data['A']
-                    await self.__handlers[method](message)
+                    if method in self.__handlers:
+                        await self.__handlers[method](message)
 
         connection.received += handle
 

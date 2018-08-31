@@ -17,6 +17,8 @@ import asyncio
 import ssl
 import logging
 
+import aiohttp
+
 try:
     import uvloop
 
@@ -76,6 +78,14 @@ class Transport:
             
             self._connection.started = True
             logger.info("WS connection started")
+            async with aiohttp.ClientSession(
+                headers=self._ws_params.headers,
+                connector=aiohttp.TCPConnector(verify_ssl=False)
+            ) as session:
+                result = await session.get(
+                    url=self._ws_params.get_start_url(),
+                )
+                print(f"start result: {result}")
             await self.handler(self.ws)
 
     async def handler(self, ws):

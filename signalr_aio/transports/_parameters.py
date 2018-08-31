@@ -20,6 +20,7 @@ class WebSocketParameters:
         self.verify_ssl = connection.verify_ssl
         self.headers = None
         self.socket_conf = None
+        self.qs = connection.qs
         self._negotiate()
         self.socket_url = self._get_socket_url()
 
@@ -42,11 +43,13 @@ class WebSocketParameters:
     def _negotiate(self):
         if self.session is None:
             self.session = requests.Session()
-        query = urlencode({
+        query_params = {
             "access_token": self.adal_token,
             'connectionData': self.conn_data,
             'clientProtocol': self.protocol_version,
-        })
+        }
+        query_params.update(self.qs)
+        query = urlencode(query_params)
         url = self._format_url(self.raw_url, 'negotiate', query)
         self.headers = dict(self.session.headers)
         request = self.session.get(url)
@@ -62,15 +65,36 @@ class WebSocketParameters:
 
     def _get_socket_url(self):
         ws_url = self._get_ws_url_from()
-        query = urlencode({
+        
+        query_params = {
             'transport': 'webSockets',
             "access_token": self.adal_token,
             'connectionToken': self.socket_conf['ConnectionToken'],
             'connectionData': self.conn_data,
             'clientProtocol': self.socket_conf['ProtocolVersion'],
-        })
+        }
+
+        query_params.update(self.qs)
+
+        query = urlencode(query_params)
 
         return self._format_url(ws_url, 'connect', query)
+    
+    def get_start_url(self):
+        query_params = {
+            'transport': 'webSockets',
+            "access_token": self.adal_token,
+            'connectionToken': self.socket_conf['ConnectionToken'],
+            'connectionData': self.conn_data,
+            'clientProtocol': self.socket_conf['ProtocolVersion'],
+        }
+
+        query_params.update(self.qs)
+
+        query = urlencode(query_params)
+
+        return self._format_url(self.raw_url, 'start', query)
+
 
     def _get_ws_url_from(self):
         parsed = urlparse(self.raw_url)
